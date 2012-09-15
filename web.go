@@ -36,7 +36,7 @@ func loginHandler(rw http.ResponseWriter, req *http.Request) {
 	session, _ := store.Get(req, "session")
 	logged := session.Values["logged"]
 
-	if logged.(string) == "1" {
+	if logged != nil && logged.(string) == "1" {
 		http.Redirect(rw, req, "/user/", http.StatusFound)
 		return
 	}
