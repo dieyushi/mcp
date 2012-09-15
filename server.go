@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"strings"
 )
 
 type Client struct {
@@ -89,7 +90,11 @@ func clientReceiver(client *Client) {
 			client.Close()
 			break
 		}
-		client.IN <- string(buf)
+		if string(buf)[:2] == "2:" {
+			cid := strings.Split(string(buf), ":")[1]
+			result := strings.Split(string(buf), ":")[2]
+			CommResult(client.ID, cid, result)
+		}
 	}
 }
 
@@ -120,18 +125,18 @@ func CommResult(uid string, cid string, result string) {
 }
 
 func CommDoneCallback(uid string, cid string) {
-	redisClient.Zrem("comm:"+uid+":donecids", []byte(cid))
+	redisClient.Zrem("comm:"+uid+":todocids", []byte(cid))
 	score, _ := strconv.Atoi(cid)
 	redisClient.Zadd("comm:"+uid+":donecids", []byte(cid), float64(score))
 }
 
 func AddEventFromWeb(uid string, cid string, command string) {
 	if IsUIDOnline(uid) == false {
-		redisClient.Rpush("comm:"+uid+":cache", []byte(cid+":"+command))
+		redisClient.Rpush("comm:"+uid+":cache", []byte("1:"+cid+":"+command))
 		return
 	}
 
-	clientMap[uid].IN <- cid + ":" + command
+	clientMap[uid].IN <- "1:" + cid + ":" + command
 }
 
 func SendCachedCids(client *Client) {
