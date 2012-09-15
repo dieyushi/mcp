@@ -72,7 +72,6 @@ func clientSender(client *Client) {
 		select {
 		case buf := <-client.IN:
 			client.Conn.Write([]byte(buf + "\r\n"))
-			break
 		case <-client.Quit:
 			client.Conn.Close()
 			break
@@ -84,16 +83,21 @@ func clientReceiver(client *Client) {
 	for {
 		buf, _, err := bufio.NewReader(client.Conn).ReadLine()
 		if err != nil {
+			client.Close()
 			break
 		}
 		if string(buf) == string("/quit") {
 			client.Close()
 			break
 		}
-		if string(buf)[:2] == "2:" {
-			cid := strings.Split(string(buf), ":")[1]
-			result := strings.Split(string(buf), ":")[2]
-			CommResult(client.ID, cid, result)
+		if len(string(buf)) > 2 {
+			if string(buf)[:2] == "2:" {
+				cid := strings.Split(string(buf), ":")[1]
+				result := strings.Split(string(buf), ":")[2]
+				result = strings.Replace(result, "^^r^^n", "\n", -1)
+				result = strings.Replace(result, "^^^", ":", -1)
+				CommResult(client.ID, cid, result)
+			}
 		}
 	}
 }
