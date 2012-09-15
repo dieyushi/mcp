@@ -18,5 +18,6 @@ table command:
     comm:[cid]:result   result(string)
     comm:[uid]:todocids tocid(sorted set (Maybe list is better))
     comm:[uid]:donecids donecid(sorted set (Maybe list is better))
+    comm:[uid]:cache    cid+command(list)
 
 ==Server-PC==

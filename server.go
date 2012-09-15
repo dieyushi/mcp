@@ -62,6 +62,8 @@ func HandleClient(conn net.Conn, clientMap map[string]Client) {
 
 	go clientSender(newClient)
 	go clientReceiver(newClient)
+
+	SendCachedCids(newClient)
 }
 
 func clientSender(client *Client) {
@@ -125,8 +127,17 @@ func CommDoneCallback(uid string, cid string) {
 
 func AddEventFromWeb(uid string, cid string, command string) {
 	if IsUIDOnline(uid) == false {
+		redisClient.Rpush("comm:"+uid+":cache", []byte(cid+":"+command))
 		return
 	}
 
 	clientMap[uid].IN <- cid + ":" + command
+}
+
+func SendCachedCids(client *Client) {
+	cachedCids, _ := redisClient.Lrange("comm:"+client.ID+":cache", 0, -1)
+	for _, v := range cachedCids {
+		client.IN <- string(v)
+	}
+	redisClient.Del("comm:" + client.ID + ":cache")
 }
