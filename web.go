@@ -76,6 +76,10 @@ func registerHandler(rw http.ResponseWriter, req *http.Request) {
 		email := req.FormValue("email")
 
 		if password == passwordrepeat && username+passwordrepeat+password+email != "" {
+			if ok, _ := redisClient.Exists("user:" + username); ok {
+				fmt.Fprintf(rw, "username already exists")
+			}
+
 			uid, err := redisClient.Incr("user:next:uid")
 			if err != nil {
 				fmt.Fprintf(rw, "error")
@@ -89,7 +93,7 @@ func registerHandler(rw http.ResponseWriter, req *http.Request) {
 			redisClient.Set(passwordKey, []byte(password))
 			redisClient.Set(emailKey, []byte(email))
 			redisClient.Set(uidkey, []byte(strconv.FormatInt(uid, 10)))
-			return
+			http.Redirect(rw, req, "/login/", http.StatusFound)
 		}
 	}
 
