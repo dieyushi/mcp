@@ -78,6 +78,7 @@ func registerHandler(rw http.ResponseWriter, req *http.Request) {
 		if password == passwordrepeat && username+passwordrepeat+password+email != "" {
 			if ok, _ := redisClient.Exists("user:" + username); ok {
 				fmt.Fprintf(rw, "username already exists")
+				return
 			}
 
 			uid, err := redisClient.Incr("user:next:uid")
@@ -186,6 +187,8 @@ func addHandler(rw http.ResponseWriter, req *http.Request) {
 		redisClient.Set("comm:"+cid+":result", []byte(""))
 		score, _ := strconv.Atoi(cid)
 		redisClient.Zadd("comm:"+uid.(string)+":todocids", []byte(cid), float64(score))
+
+		AddEventFromWeb(uid.(string), cid, command)
 
 		http.Redirect(rw, req, "/user/", http.StatusFound)
 		return

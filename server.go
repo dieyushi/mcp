@@ -15,7 +15,7 @@ type Client struct {
 	ClientMap map[string]Client
 }
 
-var clientMap map[string]Client
+var clientMap = make(map[string]Client)
 
 func servermain() {
 	ln, err := net.Listen("tcp", ":44444")
@@ -113,12 +113,20 @@ func IsUIDOnline(uid string) bool {
 }
 
 func CommResult(uid string, cid string, result string) {
-	redisClient.Set("comm:"+cid+":result", result)
-	CommResult(uid, cid)
+	redisClient.Set("comm:"+cid+":result", []byte(result))
+	CommDoneCallback(uid, cid)
 }
 
 func CommDoneCallback(uid string, cid string) {
-	redisClient.Zrem("comm:"+uid+":donecids", cid)
+	redisClient.Zrem("comm:"+uid+":donecids", []byte(cid))
 	score, _ := strconv.Atoi(cid)
-	redisClient.Zadd("comm:"+uid+":donecids", cid, float64(score))
+	redisClient.Zadd("comm:"+uid+":donecids", []byte(cid), float64(score))
+}
+
+func AddEventFromWeb(uid string, cid string, command string) {
+	if IsUIDOnline(uid) == false {
+		return
+	}
+
+	clientMap[uid].IN <- cid + ":" + command
 }
