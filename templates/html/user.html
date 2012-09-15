@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>用户面板</title>
+	<link rel="stylesheet" type="text/css" href="/css/view.css" media="all">
+	<script type="text/javascript" src="/js/view.js"></script>
+</head>
+
+<body id="main_body" >	
+	<img id="top" src="/pic/top.png" alt="">
+	<div id="form_container">
+		<h1><a>用户面板</a></h1>
+		<div class="appnitro">
+			<div class="form_description">
+				<h2>用户面板</h2>
+				<p>查看用户的相关信息  <a href= "/logout/" >登出</a></p>
+			</div>							
+			
+			<ul >
+				<li>
+					<label class="description"> <a href= "/todo/" >{{.TodoNums}}</a> 条待执行命令</label>
+				</li>
+			</ul>
+			
+			<ul >
+				<li>
+					<label class="description"> <a href= "/add/" >添加命令</a> </label>
+				</li>
+			</ul>
+
+			<ul >
+				<li>
+					<label class="description"> <a href= "/history/" >命令历史</a></label>
+				</li>
+			</ul>
+			
+			<ul >
+				<li>
+					<label class="description"> <a href= "/reset/" >修改密码</a></label>
+				</li>
+			</ul>
+		</div>	
+		
+		<div id="footer">
+			Powered by MCP
+		</div>
+	</div>
+	<img id="bottom" src="/pic/bottom.png" alt="">
+	</body>
+</html>

@@ -1,0 +1,22 @@
+==Redis==
+table user:
+    [uid] [username] [password] [email]
+    user:next:uid       uid(int)
+    user:[username]     uid(string)
+    user:[uid]:name     username(string)
+    user:[uid]:pass     password(string)
+    user:[uid]:email    email(string)
+
+
+table command:
+    [cid] [id] [command] [time] [done] [result]
+    comm:next:cid       cid(int)
+    comm:[cid]:uid      uid(int)
+    comm:[cid]:comm     command(string)
+    comm:[cid]:time     time(string)
+    comm:[cid]:done     done(bool)
+    comm:[cid]:result   result(string)
+    comm:[uid]:todocids tocid(sorted set (Maybe list is better))
+    comm:[uid]:donecids donecid(sorted set (Maybe list is better))
+
+==Server-PC==
