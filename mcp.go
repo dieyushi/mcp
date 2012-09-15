@@ -10,5 +10,6 @@ func main() {
 	redisClient.Addr = ":6379"
 	var c chan int
 	go webmain()
+	go servermain()
 	<-c
 }
