@@ -110,7 +110,7 @@ func userHandler(rw http.ResponseWriter, req *http.Request) {
 	session, _ := store.Get(req, "session")
 	logged := session.Values["logged"]
 
-	if logged.(string) != "1" {
+	if logged == nil || logged.(string) != "1" {
 		http.Redirect(rw, req, "/login/", http.StatusFound)
 		return
 	}
@@ -139,7 +139,7 @@ func resetHandler(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	data := &ResetError{""}
-	if logged.(string) != "1" {
+	if logged == nil || logged.(string) != "1" {
 		http.Redirect(rw, req, "/login/", http.StatusFound)
 		return
 	}
@@ -167,7 +167,7 @@ func addHandler(rw http.ResponseWriter, req *http.Request) {
 	session, _ := store.Get(req, "session")
 	logged := session.Values["logged"]
 	uid := session.Values["id"]
-	if logged.(string) != "1" {
+	if logged == nil || logged.(string) != "1" {
 		http.Redirect(rw, req, "/login/", http.StatusFound)
 		return
 	}
@@ -202,7 +202,7 @@ func todoHandler(rw http.ResponseWriter, req *http.Request) {
 	session, _ := store.Get(req, "session")
 	logged := session.Values["logged"]
 	uid := session.Values["id"]
-	if logged.(string) != "1" {
+	if logged == nil || logged.(string) != "1" {
 		http.Redirect(rw, req, "/login/", http.StatusFound)
 		return
 	}
@@ -267,7 +267,7 @@ func historyHandler(rw http.ResponseWriter, req *http.Request) {
 	session, _ := store.Get(req, "session")
 	logged := session.Values["logged"]
 	uid := session.Values["id"]
-	if logged.(string) != "1" {
+	if logged == nil || logged.(string) != "1" {
 		http.Redirect(rw, req, "/login/", http.StatusFound)
 		return
 	}
