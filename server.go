@@ -22,6 +22,7 @@ func servermain() {
 	ln, err := net.Listen("tcp", ":44444")
 	if err != nil {
 		fmt.Println("listen error on port 44444")
+		mainChan <- true
 		return
 	}
 	defer ln.Close()
