@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -24,6 +25,7 @@ func webmain() {
 	http.HandleFunc("/add/", addHandler)
 	http.HandleFunc("/todo/", todoHandler)
 	http.HandleFunc("/history/", historyHandler)
+	http.HandleFunc("/bye/", byeHandler)
 	http.HandleFunc("/", NotFoundHandler)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		fmt.Println("listen error on port 8080")
@@ -330,6 +332,14 @@ func historyHandler(rw http.ResponseWriter, req *http.Request) {
 
 	t, _ := template.ParseFiles("templates/html/history.html")
 	t.Execute(rw, &TemplateData{commMap, ipage, pageNum, nextPage, previousPage})
+}
+
+func byeHandler(rw http.ResponseWriter, req *http.Request) {
+	remoteIP := strings.Split(req.RemoteAddr, ":")[0]
+	if remoteIP == "127.0.0.1" {
+		mainChan <- true
+		mainChan <- true
+	}
 }
 
 func NotFoundHandler(rw http.ResponseWriter, req *http.Request) {
