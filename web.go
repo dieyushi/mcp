@@ -4,6 +4,7 @@ import (
 	"code.google.com/p/gorilla/sessions"
 	"fmt"
 	"html/template"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -27,10 +28,18 @@ func webmain() {
 	http.HandleFunc("/history/", historyHandler)
 	http.HandleFunc("/bye/", byeHandler)
 	http.HandleFunc("/", NotFoundHandler)
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+
+	ln, err := net.Listen("tcp", ":8080")
+	if err != nil {
 		fmt.Println("listen error on port 8080")
+		closeFdChan <- true
 		mainChan <- true
+		return
 	}
+	defer ln.Close()
+
+	closeFdChan <- true
+	http.Serve(ln, nil)
 }
 
 func loginHandler(rw http.ResponseWriter, req *http.Request) {

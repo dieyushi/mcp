@@ -12,11 +12,11 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
-	"time"
 )
 
 var redisClient goredis.Client
 var mainChan = make(chan bool)
+var closeFdChan = make(chan bool)
 
 func main() {
 	d := flag.Bool("d", false, "Whether or not to launch in the background(like a daemon)")
@@ -76,7 +76,9 @@ func main() {
 		go webmain()
 		go servermain()
 
-		time.Sleep(1 * time.Second)
+		<-closeFdChan
+		<-closeFdChan
+
 		if *closeFds {
 			os.Stdin.Close()
 			os.Stdout.Close()

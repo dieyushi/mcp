@@ -22,11 +22,13 @@ func servermain() {
 	ln, err := net.Listen("tcp", ":44444")
 	if err != nil {
 		fmt.Println("listen error on port 44444")
+		closeFdChan <- true
 		mainChan <- true
 		return
 	}
-	defer ln.Close()
 
+	defer ln.Close()
+	closeFdChan <- true
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
