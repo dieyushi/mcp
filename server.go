@@ -19,9 +19,9 @@ type Client struct {
 var clientMap = make(map[string]Client)
 
 func servermain() {
-	ln, err := net.Listen("tcp", ":44444")
+	ln, err := net.Listen("tcp", host+":"+pcport)
 	if err != nil {
-		fmt.Println("listen error on port 44444")
+		fmt.Println("listen error on port", pcport)
 		closeFdChan <- true
 		mainChan <- true
 		return

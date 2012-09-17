@@ -29,9 +29,9 @@ func webmain() {
 	http.HandleFunc("/bye/", byeHandler)
 	http.HandleFunc("/", NotFoundHandler)
 
-	ln, err := net.Listen("tcp", ":8080")
+	ln, err := net.Listen("tcp", host+":"+webport)
 	if err != nil {
-		fmt.Println("listen error on port 8080")
+		fmt.Println("listen error on port", webport)
 		closeFdChan <- true
 		mainChan <- true
 		return

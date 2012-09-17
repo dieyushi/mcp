@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"code.google.com/p/goconf/conf"
 	"flag"
 	"fmt"
 	"github.com/monnand/goredis"
@@ -14,9 +15,14 @@ import (
 	"strings"
 )
 
-var redisClient goredis.Client
-var mainChan = make(chan bool)
-var closeFdChan = make(chan bool)
+var (
+	redisClient goredis.Client
+	mainChan    = make(chan bool)
+	closeFdChan = make(chan bool)
+	host        string
+	webport     string
+	pcport      string
+)
 
 func main() {
 	d := flag.Bool("d", false, "Whether or not to launch in the background(like a daemon)")
@@ -27,6 +33,8 @@ func main() {
 			"\n\t\treplace:      send a quit signal to *addr* then startup as normal"+
 			"")
 	flag.Parse()
+
+	handleConfig()
 
 	switch *call {
 	case "":
@@ -40,7 +48,7 @@ func main() {
 		log.Fatalf("invalid call: expected one of `quit, replace', got `%s'\n", *call)
 	}
 
-	println("trying to listen on port 8080 and 44444")
+	println("trying to listen on port", webport, "and", pcport)
 
 	if *d {
 		cmd := exec.Command(os.Args[0],
@@ -58,7 +66,7 @@ func main() {
 		s, err := ioutil.ReadAll(serr)
 		s = bytes.TrimSpace(s)
 
-		if strings.Contains(string(s), "error") {
+		if strings.Contains(string(s), "listen error on port") {
 			fmt.Printf("%v\n", string(s))
 			cmd.Process.Kill()
 		} else {
@@ -91,7 +99,21 @@ func main() {
 }
 
 func sendQuit() {
-	if resp, err := http.Get("http://127.0.0.1:8080/bye/"); err == nil {
+	if resp, err := http.Get("http://127.0.0.1:" + webport + "/bye/"); err == nil {
 		resp.Body.Close()
 	}
+}
+
+func handleConfig() {
+	mcpConfig, err := conf.ReadConfigFile("mcp.conf")
+	if err != nil {
+		fmt.Printf("parse config error, start up with default config\n")
+		host = ""
+		webport = "8080"
+		pcport = "44444"
+		return
+	}
+	host, _ = mcpConfig.GetString("default", "host")
+	webport, _ = mcpConfig.GetString("default", "webport")
+	pcport, _ = mcpConfig.GetString("default", "pcport")
 }
