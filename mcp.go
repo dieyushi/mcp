@@ -3,13 +3,16 @@ package main
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"github.com/monnand/goredis"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
 	"runtime"
 	"strings"
+	"time"
 )
 
 var redisClient goredis.Client
@@ -43,11 +46,20 @@ func main() {
 		cmd := exec.Command(os.Args[0],
 			"-close-fds",
 			"-call", *call)
-		var out bytes.Buffer
-		cmd.Stdout = &out
-		cmd.Start()
-		if strings.Contains(out.String(), "error") {
-			log.Printf("error: %v", out.String())
+
+		serr, err := cmd.StdoutPipe()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		err = cmd.Start()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		s, err := ioutil.ReadAll(serr)
+		s = bytes.TrimSpace(s)
+
+		if strings.Contains(string(s), "error") {
+			fmt.Printf("%v\n", string(s))
 			cmd.Process.Kill()
 		} else {
 			cmd.Process.Release()
@@ -64,6 +76,7 @@ func main() {
 		go webmain()
 		go servermain()
 
+		time.Sleep(1 * time.Second)
 		if *closeFds {
 			os.Stdin.Close()
 			os.Stdout.Close()
