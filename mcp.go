@@ -22,6 +22,7 @@ var (
 	host        string
 	webport     string
 	pcport      string
+	redisaddr   string
 )
 
 func main() {
@@ -79,7 +80,7 @@ func main() {
 		}
 
 		runtime.GOMAXPROCS(runtime.NumCPU() + 1)
-		redisClient.Addr = ":6379"
+		redisClient.Addr = redisaddr
 
 		go webmain()
 		go servermain()
@@ -99,8 +100,14 @@ func main() {
 }
 
 func sendQuit() {
-	if resp, err := http.Get("http://127.0.0.1:" + webport + "/bye/"); err == nil {
-		resp.Body.Close()
+	if host == "" {
+		if resp, err := http.Get("http://127.0.0.1:" + webport + "/bye/"); err == nil {
+			resp.Body.Close()
+		}
+	} else {
+		if resp, err := http.Get("http://" + host + ":" + webport + "/bye/"); err == nil {
+			resp.Body.Close()
+		}
 	}
 }
 
@@ -111,9 +118,11 @@ func handleConfig() {
 		host = ""
 		webport = "8080"
 		pcport = "44444"
+		redisaddr = ":6379"
 		return
 	}
 	host, _ = mcpConfig.GetString("default", "host")
 	webport, _ = mcpConfig.GetString("default", "webport")
 	pcport, _ = mcpConfig.GetString("default", "pcport")
+	redisaddr, _ = mcpConfig.GetString("redis", "addr")
 }

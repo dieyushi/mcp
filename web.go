@@ -345,7 +345,7 @@ func historyHandler(rw http.ResponseWriter, req *http.Request) {
 
 func byeHandler(rw http.ResponseWriter, req *http.Request) {
 	remoteIP := strings.Split(req.RemoteAddr, ":")[0]
-	if remoteIP == "127.0.0.1" {
+	if (host == "" && remoteIP == "127.0.0.1") || (host == remoteIP) {
 		mainChan <- true
 		mainChan <- true
 	}
