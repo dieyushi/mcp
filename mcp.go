@@ -23,6 +23,8 @@ var (
 	webport     string
 	pcport      string
 	redisaddr   string
+	redisdb     int
+	redispwd    string
 )
 
 func main() {
@@ -80,7 +82,10 @@ func main() {
 		}
 
 		runtime.GOMAXPROCS(runtime.NumCPU() + 1)
+
 		redisClient.Addr = redisaddr
+		redisClient.Db = redisdb
+		redisClient.Password = redispwd
 
 		go webmain()
 		go servermain()
@@ -119,10 +124,15 @@ func handleConfig() {
 		webport = "8080"
 		pcport = "44444"
 		redisaddr = ":6379"
+		redisdb = 0
+		redispwd = ""
+
 		return
 	}
 	host, _ = mcpConfig.GetString("default", "host")
 	webport, _ = mcpConfig.GetString("default", "webport")
 	pcport, _ = mcpConfig.GetString("default", "pcport")
-	redisaddr, _ = mcpConfig.GetString("redis", "addr")
+	redisaddr, _ = mcpConfig.GetString("redis", "redisaddr")
+	redisdb, _ = mcpConfig.GetInt("redis", "redisdb")
+	redispwd, _ = mcpConfig.GetString("redis", "redispwd")
 }
