@@ -69,7 +69,8 @@ func main() {
 		s, err := ioutil.ReadAll(serr)
 		s = bytes.TrimSpace(s)
 
-		if strings.Contains(string(s), "listen error on port") {
+		if strings.Contains(string(s), "listen error on port") ||
+			strings.Contains(string(s), "Connect redis error") {
 			fmt.Printf("%v\n", string(s))
 			cmd.Process.Kill()
 		} else {
@@ -86,6 +87,12 @@ func main() {
 		redisClient.Addr = redisaddr
 		redisClient.Db = redisdb
 		redisClient.Password = redispwd
+
+		pong, err := redisClient.Ping()
+		if err != nil || pong != "PONG" {
+			fmt.Println("Connect redis error,exit")
+			return
+		}
 
 		go webmain()
 		go servermain()
