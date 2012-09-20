@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>登录</title>
+	<link rel="stylesheet" type="text/css" href="/css/view.css" media="all">
+	<script type="text/javascript" src="/js/view.js"></script>
+</head>
+
+<body id="main_body" >	
+	<img id="top" src="/pic/top.png" alt="">
+	<div id="form_container">
+		<h1><a>登录</a></h1>
+		<form class="appnitro"  method="post" action="">
+			<div class="form_description">
+				<h2>登录</h2>
+				<p>请输入用户名和密码进行登录。<a href="/register/" >注册</a> 
+			</div>						
+			
+			<ul >
+				<li><label class="description">{{.ErrStr}}</label></li>
+				<li>
+					<label class="description">用户名 </label>
+					<div>
+						<input id="id_username" type="text" class="element text medium" name="username" />
+					</div> 
+				</li>
+				<li>
+					<label class="description">密码 </label>
+					<div>
+						<input id="id_password" type="password" class="element text medium" name="password" />
+					</div>
+				</li>
+				<li class="buttons">
+					<input class="button_text" type="submit" name="submit" value="登录" />
+				</li>
+			</ul>
+		</form>	
+		
+		<div id="footer">
+			Powered by MCP
+		</div>
+	</div>
+	<img id="bottom" src="/pic/bottom.png" alt="">
+	</body>
+</html>
