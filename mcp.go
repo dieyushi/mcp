@@ -24,6 +24,8 @@ var (
 	redisaddr   string
 	redisdb     int
 	redispwd    string
+	weblog      bool
+	serlog      bool
 )
 
 func main() {
@@ -131,6 +133,8 @@ func handleConfig() {
 		redisaddr = ":6379"
 		redisdb = 0
 		redispwd = ""
+		weblog = true
+		serlog = true
 
 		return
 	}
@@ -159,16 +163,28 @@ func handleConfig() {
 	if err != nil {
 		redispwd = ""
 	}
+	weblog, err = mcpConfig.GetBool("log", "weblog")
+	if err != nil {
+		weblog = true
+	}
+	serlog, err = mcpConfig.GetBool("log", "serlog")
+	if err != nil {
+		serlog = true
+	}
 }
 
 func LogS(v ...interface{}) {
-	log.SetPrefix("[SER] ")
-	log.Println(v...)
+	if serlog {
+		log.SetPrefix("[SER] ")
+		log.Println(v...)
+	}
 }
 
 func LogW(v ...interface{}) {
-	log.SetPrefix("[WEB] ")
-	log.Println(v...)
+	if weblog {
+		log.SetPrefix("[WEB] ")
+		log.Println(v...)
+	}
 }
 
 func Log(v ...interface{}) {
