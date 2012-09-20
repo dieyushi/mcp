@@ -126,7 +126,7 @@ func sendQuit() {
 func handleConfig() {
 	mcpConfig, err := conf.ReadConfigFile("mcp.conf")
 	if err != nil {
-		fmt.Printf("parse config error, start up with default config\n")
+		fmt.Printf("parse config error (mcp.conf not found), start up with default config\n")
 		host = ""
 		webport = "8080"
 		pcport = "44444"
@@ -136,10 +136,29 @@ func handleConfig() {
 
 		return
 	}
-	host, _ = mcpConfig.GetString("default", "host")
-	webport, _ = mcpConfig.GetString("default", "webport")
-	pcport, _ = mcpConfig.GetString("default", "pcport")
-	redisaddr, _ = mcpConfig.GetString("redis", "redisaddr")
-	redisdb, _ = mcpConfig.GetInt("redis", "redisdb")
-	redispwd, _ = mcpConfig.GetString("redis", "redispwd")
+
+	host, err = mcpConfig.GetString("default", "host")
+	if err != nil {
+		host = ""
+	}
+	webport, err = mcpConfig.GetString("default", "webport")
+	if err != nil {
+		webport = "8080"
+	}
+	pcport, err = mcpConfig.GetString("default", "pcport")
+	if err != nil {
+		pcport = "44444"
+	}
+	redisaddr, err = mcpConfig.GetString("redis", "redisaddr")
+	if err != nil {
+		redisaddr = ":6379"
+	}
+	redisdb, err = mcpConfig.GetInt("redis", "redisdb")
+	if err != nil {
+		redisdb = 0
+	}
+	redispwd, err = mcpConfig.GetString("redis", "redispwd")
+	if err != nil {
+		redispwd = ""
+	}
 }
