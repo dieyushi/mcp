@@ -47,10 +47,7 @@ func loginHandler(rw http.ResponseWriter, req *http.Request) {
 		ErrStr string
 	}
 
-	session, _ := store.Get(req, "session")
-	logged := session.Values["logged"]
-
-	if logged != nil && logged.(string) == "1" {
+	if CheckSessionForUser(req) {
 		http.Redirect(rw, req, "/user/", http.StatusFound)
 		return
 	}
@@ -121,16 +118,13 @@ func userHandler(rw http.ResponseWriter, req *http.Request) {
 		TodoNums string
 	}
 
-	session, _ := store.Get(req, "session")
-	logged := session.Values["logged"]
-
-	if logged == nil || logged.(string) != "1" {
+	uid, ok := CheckSessionForLogin(req)
+	if !ok {
 		http.Redirect(rw, req, "/login/", http.StatusFound)
 		return
 	}
 
-	uid := session.Values["id"]
-	num, _ := redisClient.Zcard("comm:" + uid.(string) + ":todocids")
+	num, _ := redisClient.Zcard("comm:" + uid + ":todocids")
 
 	t, _ := template.ParseFiles("templates/html/user.html")
 	t.Execute(rw, &TodoNums{strconv.Itoa(num)})
@@ -145,28 +139,26 @@ func logoutHandler(rw http.ResponseWriter, req *http.Request) {
 }
 
 func resetHandler(rw http.ResponseWriter, req *http.Request) {
-	session, _ := store.Get(req, "session")
-	logged := session.Values["logged"]
+	uid, ok := CheckSessionForLogin(req)
+	if !ok {
+		http.Redirect(rw, req, "/login/", http.StatusFound)
+		return
+	}
 
 	type ResetError struct {
 		ErrStr string
 	}
 
 	data := &ResetError{""}
-	if logged == nil || logged.(string) != "1" {
-		http.Redirect(rw, req, "/login/", http.StatusFound)
-		return
-	}
 
 	if req.Method == "POST" {
 		originpassword := req.FormValue("originpassword")
 		password := req.FormValue("password")
 		passwordrepeat := req.FormValue("passwordrepeat")
 
-		uid := session.Values["id"]
-		passwordInDB, _ := redisClient.Get("user:" + uid.(string) + ":pass")
+		passwordInDB, _ := redisClient.Get("user:" + uid + ":pass")
 		if password == passwordrepeat && originpassword == string(passwordInDB) {
-			redisClient.Set("user:"+uid.(string)+":pass", []byte(password))
+			redisClient.Set("user:"+uid+":pass", []byte(password))
 			http.Redirect(rw, req, "/user/", http.StatusFound)
 			return
 		}
@@ -178,10 +170,8 @@ func resetHandler(rw http.ResponseWriter, req *http.Request) {
 }
 
 func addHandler(rw http.ResponseWriter, req *http.Request) {
-	session, _ := store.Get(req, "session")
-	logged := session.Values["logged"]
-	uid := session.Values["id"]
-	if logged == nil || logged.(string) != "1" {
+	uid, ok := CheckSessionForLogin(req)
+	if !ok {
 		http.Redirect(rw, req, "/login/", http.StatusFound)
 		return
 	}
@@ -194,15 +184,15 @@ func addHandler(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 		cid := strconv.FormatInt(icid, 10)
-		redisClient.Set("comm:"+cid+":uid", []byte(uid.(string)))
+		redisClient.Set("comm:"+cid+":uid", []byte(uid))
 		redisClient.Set("comm:"+cid+":comm", []byte(command))
 		redisClient.Set("comm:"+cid+":time", []byte(time.Now().Format("2006-01-02 15:04:05")))
 		redisClient.Set("comm:"+cid+":done", []byte("0"))
 		redisClient.Set("comm:"+cid+":result", []byte(""))
 		score, _ := strconv.Atoi(cid)
-		redisClient.Zadd("comm:"+uid.(string)+":todocids", []byte(cid), float64(score))
+		redisClient.Zadd("comm:"+uid+":todocids", []byte(cid), float64(score))
 
-		AddEventFromWeb(uid.(string), cid, command)
+		AddEventFromWeb(uid, cid, command)
 
 		http.Redirect(rw, req, "/user/", http.StatusFound)
 		return
@@ -213,10 +203,8 @@ func addHandler(rw http.ResponseWriter, req *http.Request) {
 }
 
 func todoHandler(rw http.ResponseWriter, req *http.Request) {
-	session, _ := store.Get(req, "session")
-	logged := session.Values["logged"]
-	uid := session.Values["id"]
-	if logged == nil || logged.(string) != "1" {
+	uid, ok := CheckSessionForLogin(req)
+	if !ok {
 		http.Redirect(rw, req, "/login/", http.StatusFound)
 		return
 	}
@@ -243,7 +231,7 @@ func todoHandler(rw http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(rw, "error")
 		return
 	}
-	countNum, _ := redisClient.Zcard("comm:" + uid.(string) + ":todocids")
+	countNum, _ := redisClient.Zcard("comm:" + uid + ":todocids")
 	pageNum := countNum / 5
 	if countNum%5 != 0 {
 		pageNum = pageNum + 1
@@ -264,7 +252,7 @@ func todoHandler(rw http.ResponseWriter, req *http.Request) {
 		previousPage = ipage - 1
 	}
 
-	cids, _ := redisClient.Zrange("comm:"+uid.(string)+":todocids", (ipage-1)*5, ipage*5-1)
+	cids, _ := redisClient.Zrange("comm:"+uid+":todocids", (ipage-1)*5, ipage*5-1)
 	commMap := make(map[string]*TodoInfo)
 	for _, v := range cids {
 		command, _ := redisClient.Get("comm:" + string(v) + ":comm")
@@ -278,10 +266,8 @@ func todoHandler(rw http.ResponseWriter, req *http.Request) {
 }
 
 func historyHandler(rw http.ResponseWriter, req *http.Request) {
-	session, _ := store.Get(req, "session")
-	logged := session.Values["logged"]
-	uid := session.Values["id"]
-	if logged == nil || logged.(string) != "1" {
+	uid, ok := CheckSessionForLogin(req)
+	if !ok {
 		http.Redirect(rw, req, "/login/", http.StatusFound)
 		return
 	}
@@ -309,7 +295,7 @@ func historyHandler(rw http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(rw, "error")
 		return
 	}
-	countNum, _ := redisClient.Zcard("comm:" + uid.(string) + ":donecids")
+	countNum, _ := redisClient.Zcard("comm:" + uid + ":donecids")
 	pageNum := countNum / 5
 	if countNum%5 != 0 {
 		pageNum = pageNum + 1
@@ -329,7 +315,7 @@ func historyHandler(rw http.ResponseWriter, req *http.Request) {
 		previousPage = ipage - 1
 	}
 
-	cids, _ := redisClient.Zrange("comm:"+uid.(string)+":donecids", (ipage-1)*5, ipage*5-1)
+	cids, _ := redisClient.Zrange("comm:"+uid+":donecids", (ipage-1)*5, ipage*5-1)
 	commMap := make(map[string]*HistoryInfo)
 	for _, v := range cids {
 		command, _ := redisClient.Get("comm:" + string(v) + ":comm")
@@ -359,4 +345,24 @@ func NotFoundHandler(rw http.ResponseWriter, req *http.Request) {
 
 	t, _ := template.ParseFiles("templates/html/404.html")
 	t.Execute(rw, nil)
+}
+
+func CheckSessionForLogin(req *http.Request) (string, bool) {
+	session, _ := store.Get(req, "session")
+	logged := session.Values["logged"]
+	uid := session.Values["id"]
+	if logged == nil || logged.(string) != "1" {
+		return "", false
+	}
+	return uid.(string), true
+}
+
+func CheckSessionForUser(req *http.Request) bool {
+	session, _ := store.Get(req, "session")
+	logged := session.Values["logged"]
+
+	if logged != nil && logged.(string) == "1" {
+		return true
+	}
+	return false
 }
