@@ -91,6 +91,11 @@ func main() {
 	} else {
 		if *call == "replace" {
 			sendQuit()
+			cmd := exec.Command(os.Args[0],
+				"-d")
+			cmd.Start()
+			cmd.Process.Release()
+			return
 		}
 
 		runtime.GOMAXPROCS(runtime.NumCPU() + 1)
