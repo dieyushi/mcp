@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"code.google.com/p/goconf/conf"
 	"flag"
-	"fmt"
 	"github.com/monnand/goredis"
 	"io/ioutil"
 	"log"
@@ -48,17 +47,15 @@ func main() {
 	case "replace":
 		// handled below
 	default:
-		log.Fatalf("invalid call: expected one of `quit, replace', got `%s'\n", *call)
+		LogE("invalid call: expected one of `quit, replace', got `%s'\n", *call)
 	}
-
-	println("trying to listen on port", webport, "and", pcport)
 
 	if *d {
 		cmd := exec.Command(os.Args[0],
 			"-close-fds",
 			"-call", *call)
 
-		serr, err := cmd.StdoutPipe()
+		serr, err := cmd.StderrPipe()
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -71,11 +68,12 @@ func main() {
 
 		if strings.Contains(string(s), "listen error on port") ||
 			strings.Contains(string(s), "Connect redis error") {
-			fmt.Printf("%v\n", string(s))
+			println(string(s))
 			cmd.Process.Kill()
 		} else {
 			cmd.Process.Release()
-			println("Serving in the background")
+			Log("listening on port", webport, "and", pcport)
+			Log("Serving in the background")
 		}
 	} else {
 		if *call == "replace" {
@@ -90,7 +88,7 @@ func main() {
 
 		pong, err := redisClient.Ping()
 		if err != nil || pong != "PONG" {
-			fmt.Println("Connect redis error,exit")
+			LogE("Connect redis error,exit")
 			return
 		}
 
@@ -105,7 +103,7 @@ func main() {
 			os.Stdout.Close()
 			os.Stderr.Close()
 		}
-
+		Log("listening on port", webport, "and", pcport)
 		<-mainChan
 		<-mainChan
 	}
@@ -126,7 +124,7 @@ func sendQuit() {
 func handleConfig() {
 	mcpConfig, err := conf.ReadConfigFile("mcp.conf")
 	if err != nil {
-		fmt.Printf("parse config error (mcp.conf not found), start up with default config\n")
+		Log("parse config error (mcp.conf not found), start up with default config")
 		host = ""
 		webport = "8080"
 		pcport = "44444"
@@ -161,4 +159,24 @@ func handleConfig() {
 	if err != nil {
 		redispwd = ""
 	}
+}
+
+func LogS(v ...interface{}) {
+	log.SetPrefix("[SER] ")
+	log.Println(v...)
+}
+
+func LogW(v ...interface{}) {
+	log.SetPrefix("[WEB] ")
+	log.Println(v...)
+}
+
+func Log(v ...interface{}) {
+	log.SetPrefix("[MCP] ")
+	log.Println(v...)
+}
+
+func LogE(v ...interface{}) {
+	log.SetPrefix("[MCP] ")
+	log.Fatalln(v...)
 }

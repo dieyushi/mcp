@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"net"
 	"strconv"
 	"strings"
@@ -21,7 +20,7 @@ var clientMap = make(map[string]Client)
 func servermain() {
 	ln, err := net.Listen("tcp", host+":"+pcport)
 	if err != nil {
-		fmt.Println("listen error on port", pcport)
+		LogS("listen error on port", pcport)
 		closeFdChan <- true
 		mainChan <- true
 		return
@@ -32,7 +31,7 @@ func servermain() {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			fmt.Println("accept error")
+			LogS("accept error")
 			continue
 		}
 		go HandleClient(conn, clientMap)

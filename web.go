@@ -31,7 +31,7 @@ func webmain() {
 
 	ln, err := net.Listen("tcp", host+":"+webport)
 	if err != nil {
-		fmt.Println("listen error on port", webport)
+		LogW("listen error on port", webport)
 		closeFdChan <- true
 		mainChan <- true
 		return
