@@ -113,11 +113,11 @@ func registerHandler(rw http.ResponseWriter, req *http.Request) {
 	t.Execute(rw, nil)
 }
 
-func userHandler(rw http.ResponseWriter, req *http.Request) {
-	type TodoNums struct {
-		TodoNums string
-	}
+type TodoNums struct {
+	TodoNums string
+}
 
+func userHandler(rw http.ResponseWriter, req *http.Request) {
 	uid, ok := CheckSessionForLogin(req)
 	if !ok {
 		http.Redirect(rw, req, "/login/", http.StatusFound)
@@ -138,15 +138,15 @@ func logoutHandler(rw http.ResponseWriter, req *http.Request) {
 	http.Redirect(rw, req, "/login/", http.StatusFound)
 }
 
+type ResetError struct {
+	ErrStr string
+}
+
 func resetHandler(rw http.ResponseWriter, req *http.Request) {
 	uid, ok := CheckSessionForLogin(req)
 	if !ok {
 		http.Redirect(rw, req, "/login/", http.StatusFound)
 		return
-	}
-
-	type ResetError struct {
-		ErrStr string
 	}
 
 	data := &ResetError{""}
@@ -202,24 +202,24 @@ func addHandler(rw http.ResponseWriter, req *http.Request) {
 	t.Execute(rw, nil)
 }
 
+type TodoInfo struct {
+	Command string
+	Time    string
+}
+
+type TemplateTodoData struct {
+	TodoMap      map[string]*TodoInfo
+	CurrentPage  int
+	PageNum      int
+	NextPage     int
+	PreviousPage int
+}
+
 func todoHandler(rw http.ResponseWriter, req *http.Request) {
 	uid, ok := CheckSessionForLogin(req)
 	if !ok {
 		http.Redirect(rw, req, "/login/", http.StatusFound)
 		return
-	}
-
-	type TodoInfo struct {
-		Command string
-		Time    string
-	}
-
-	type TemplateData struct {
-		TodoMap      map[string]*TodoInfo
-		CurrentPage  int
-		PageNum      int
-		NextPage     int
-		PreviousPage int
 	}
 
 	spage := req.URL.Path[6:]
@@ -262,7 +262,21 @@ func todoHandler(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	t, _ := template.ParseFiles("templates/html/todo.html")
-	t.Execute(rw, &TemplateData{commMap, ipage, pageNum, nextPage, previousPage})
+	t.Execute(rw, &TemplateTodoData{commMap, ipage, pageNum, nextPage, previousPage})
+}
+
+type HistoryInfo struct {
+	Command string
+	Time    string
+	Result  string
+}
+
+type TemplateHistoryData struct {
+	HistoryMap   map[string]*HistoryInfo
+	CurrentPage  int
+	PageNum      int
+	NextPage     int
+	PreviousPage int
 }
 
 func historyHandler(rw http.ResponseWriter, req *http.Request) {
@@ -270,20 +284,6 @@ func historyHandler(rw http.ResponseWriter, req *http.Request) {
 	if !ok {
 		http.Redirect(rw, req, "/login/", http.StatusFound)
 		return
-	}
-
-	type HistoryInfo struct {
-		Command string
-		Time    string
-		Result  string
-	}
-
-	type TemplateData struct {
-		HistoryMap   map[string]*HistoryInfo
-		CurrentPage  int
-		PageNum      int
-		NextPage     int
-		PreviousPage int
 	}
 
 	spage := req.URL.Path[9:]
@@ -326,7 +326,7 @@ func historyHandler(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	t, _ := template.ParseFiles("templates/html/history.html")
-	t.Execute(rw, &TemplateData{commMap, ipage, pageNum, nextPage, previousPage})
+	t.Execute(rw, &TemplateHistoryData{commMap, ipage, pageNum, nextPage, previousPage})
 }
 
 func byeHandler(rw http.ResponseWriter, req *http.Request) {
