@@ -5,6 +5,7 @@ import (
 	"code.google.com/p/goconf/conf"
 	"flag"
 	"github.com/monnand/goredis"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -26,6 +27,7 @@ var (
 	redispwd    string
 	weblog      bool
 	serlog      bool
+	logfile     string
 )
 
 func main() {
@@ -39,6 +41,15 @@ func main() {
 	flag.Parse()
 
 	handleConfig()
+
+	if logfile != "" {
+		f, err := os.OpenFile(logfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+		if err != nil {
+			LogE(err)
+		}
+		log.SetOutput(io.MultiWriter(f, os.Stderr))
+		defer f.Close()
+	}
 
 	switch *call {
 	case "":
@@ -135,7 +146,7 @@ func handleConfig() {
 		redispwd = ""
 		weblog = true
 		serlog = true
-
+		logfile = "mcp.log"
 		return
 	}
 
@@ -170,6 +181,10 @@ func handleConfig() {
 	serlog, err = mcpConfig.GetBool("log", "serlog")
 	if err != nil {
 		serlog = true
+	}
+	logfile, err = mcpConfig.GetString("log", "logfile")
+	if err != nil {
+		logfile = "mcp.log"
 	}
 }
 
