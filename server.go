@@ -96,8 +96,8 @@ func clientReceiver(client *Client) {
 			if string(buf)[:2] == "2:" {
 				cid := strings.Split(string(buf), ":")[1]
 				result := strings.Split(string(buf), ":")[2]
-				result = strings.Replace(result, "^^r^^n", "\n", -1)
-				result = strings.Replace(result, "^^^", ":", -1)
+				result = strings.Replace(result, "^^n", "\n", -1)
+				result = strings.Replace(result, "^^", ":", -1)
 				CommResult(client.ID, cid, result)
 			}
 		}
