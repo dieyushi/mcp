@@ -43,7 +43,7 @@ func webmain() {
 }
 
 func loginHandler(rw http.ResponseWriter, req *http.Request) {
-	LogW(req.RemoteAddr, req.RequestURI, req.UserAgent(), req.Referer())
+	LogW(req.Host, req.Method, req.RequestURI, req.RemoteAddr, req.UserAgent(), req.Referer())
 	type AuthError struct {
 		ErrStr string
 	}
