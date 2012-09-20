@@ -121,7 +121,6 @@ func main() {
 			os.Stdout.Close()
 			os.Stderr.Close()
 		}
-		Log("listening on port", webport, "and", pcport)
 		<-mainChan
 		<-mainChan
 	}
