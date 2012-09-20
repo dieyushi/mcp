@@ -31,7 +31,7 @@ func webmain() {
 
 	ln, err := net.Listen("tcp", host+":"+webport)
 	if err != nil {
-		fmt.Println("listen error on port", webport)
+		LogW("listen error on port", webport)
 		closeFdChan <- true
 		mainChan <- true
 		return
@@ -43,6 +43,7 @@ func webmain() {
 }
 
 func loginHandler(rw http.ResponseWriter, req *http.Request) {
+	LogW(req.Host, req.Method, req.RequestURI, req.RemoteAddr, req.UserAgent(), req.Referer())
 	type AuthError struct {
 		ErrStr string
 	}
@@ -83,6 +84,7 @@ func loginHandler(rw http.ResponseWriter, req *http.Request) {
 }
 
 func registerHandler(rw http.ResponseWriter, req *http.Request) {
+	LogW(req.Host, req.Method, req.RequestURI, req.RemoteAddr, req.UserAgent(), req.Referer())
 	if req.Method == "POST" {
 		username := req.FormValue("username")
 		password := req.FormValue("password")
@@ -117,6 +119,7 @@ func registerHandler(rw http.ResponseWriter, req *http.Request) {
 }
 
 func userHandler(rw http.ResponseWriter, req *http.Request) {
+	LogW(req.Host, req.Method, req.RequestURI, req.RemoteAddr, req.UserAgent(), req.Referer())
 	type TodoNums struct {
 		TodoNums string
 	}
@@ -137,6 +140,7 @@ func userHandler(rw http.ResponseWriter, req *http.Request) {
 }
 
 func logoutHandler(rw http.ResponseWriter, req *http.Request) {
+	LogW(req.Host, req.Method, req.RequestURI, req.RemoteAddr, req.UserAgent(), req.Referer())
 	session, _ := store.Get(req, "session")
 	session.Values["logged"] = "0"
 	// session.Options = &sessions.Options{MaxAge: -1}
@@ -145,6 +149,7 @@ func logoutHandler(rw http.ResponseWriter, req *http.Request) {
 }
 
 func resetHandler(rw http.ResponseWriter, req *http.Request) {
+	LogW(req.Host, req.Method, req.RequestURI, req.RemoteAddr, req.UserAgent(), req.Referer())
 	session, _ := store.Get(req, "session")
 	logged := session.Values["logged"]
 
@@ -178,6 +183,7 @@ func resetHandler(rw http.ResponseWriter, req *http.Request) {
 }
 
 func addHandler(rw http.ResponseWriter, req *http.Request) {
+	LogW(req.Host, req.Method, req.RequestURI, req.RemoteAddr, req.UserAgent(), req.Referer())
 	session, _ := store.Get(req, "session")
 	logged := session.Values["logged"]
 	uid := session.Values["id"]
@@ -213,6 +219,7 @@ func addHandler(rw http.ResponseWriter, req *http.Request) {
 }
 
 func todoHandler(rw http.ResponseWriter, req *http.Request) {
+	LogW(req.Host, req.Method, req.RequestURI, req.RemoteAddr, req.UserAgent(), req.Referer())
 	session, _ := store.Get(req, "session")
 	logged := session.Values["logged"]
 	uid := session.Values["id"]
@@ -278,6 +285,7 @@ func todoHandler(rw http.ResponseWriter, req *http.Request) {
 }
 
 func historyHandler(rw http.ResponseWriter, req *http.Request) {
+	LogW(req.Host, req.Method, req.RequestURI, req.RemoteAddr, req.UserAgent(), req.Referer())
 	session, _ := store.Get(req, "session")
 	logged := session.Values["logged"]
 	uid := session.Values["id"]
@@ -344,6 +352,7 @@ func historyHandler(rw http.ResponseWriter, req *http.Request) {
 }
 
 func byeHandler(rw http.ResponseWriter, req *http.Request) {
+	LogW(req.Host, req.Method, req.RequestURI, req.RemoteAddr, req.UserAgent(), req.Referer())
 	remoteIP := strings.Split(req.RemoteAddr, ":")[0]
 	if (host == "" && remoteIP == "127.0.0.1") || (host == remoteIP) {
 		mainChan <- true
@@ -352,6 +361,7 @@ func byeHandler(rw http.ResponseWriter, req *http.Request) {
 }
 
 func NotFoundHandler(rw http.ResponseWriter, req *http.Request) {
+	LogW(req.Host, req.Method, req.RequestURI, req.RemoteAddr, req.UserAgent(), req.Referer())
 	if req.URL.Path == "/" {
 		http.Redirect(rw, req, "/login/", http.StatusFound)
 		return
