@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"code.google.com/p/goconf/conf"
 	"flag"
 	"github.com/monnand/goredis"
 	"io"
@@ -19,15 +18,6 @@ var (
 	redisClient goredis.Client
 	mainChan    = make(chan bool)
 	closeFdChan = make(chan bool)
-	host        string
-	webport     string
-	pcport      string
-	redisaddr   string
-	redisdb     int
-	redispwd    string
-	weblog      bool
-	serlog      bool
-	logfile     string
 )
 
 func main() {
@@ -53,20 +43,16 @@ func main() {
 
 	switch *call {
 	case "":
-		// startup as normal
 	case "quit":
 		sendQuit()
 		return
 	case "replace":
-		// handled below
 	default:
 		LogE("invalid call: expected one of `quit, replace', got `%s'\n", *call)
 	}
 
 	if *d {
-		cmd := exec.Command(os.Args[0],
-			"-close-fds",
-			"-call", *call)
+		cmd := exec.Command(os.Args[0], "-close-fds", "-call", *call)
 
 		serr, err := cmd.StderrPipe()
 		if err != nil {
@@ -91,8 +77,7 @@ func main() {
 	} else {
 		if *call == "replace" {
 			sendQuit()
-			cmd := exec.Command(os.Args[0],
-				"-d")
+			cmd := exec.Command(os.Args[0], "-d")
 			cmd.Start()
 			cmd.Process.Release()
 			return
@@ -136,82 +121,4 @@ func sendQuit() {
 			resp.Body.Close()
 		}
 	}
-}
-
-func handleConfig() {
-	mcpConfig, err := conf.ReadConfigFile("mcp.conf")
-	if err != nil {
-		Log("parse config error (mcp.conf not found), start up with default config")
-		host = ""
-		webport = "8080"
-		pcport = "44444"
-		redisaddr = ":6379"
-		redisdb = 0
-		redispwd = ""
-		weblog = true
-		serlog = true
-		logfile = "mcp.log"
-		return
-	}
-
-	host, err = mcpConfig.GetString("default", "host")
-	if err != nil {
-		host = ""
-	}
-	webport, err = mcpConfig.GetString("default", "webport")
-	if err != nil {
-		webport = "8080"
-	}
-	pcport, err = mcpConfig.GetString("default", "pcport")
-	if err != nil {
-		pcport = "44444"
-	}
-	redisaddr, err = mcpConfig.GetString("redis", "redisaddr")
-	if err != nil {
-		redisaddr = ":6379"
-	}
-	redisdb, err = mcpConfig.GetInt("redis", "redisdb")
-	if err != nil {
-		redisdb = 0
-	}
-	redispwd, err = mcpConfig.GetString("redis", "redispwd")
-	if err != nil {
-		redispwd = ""
-	}
-	weblog, err = mcpConfig.GetBool("log", "weblog")
-	if err != nil {
-		weblog = true
-	}
-	serlog, err = mcpConfig.GetBool("log", "serlog")
-	if err != nil {
-		serlog = true
-	}
-	logfile, err = mcpConfig.GetString("log", "logfile")
-	if err != nil {
-		logfile = "mcp.log"
-	}
-}
-
-func LogS(v ...interface{}) {
-	if serlog {
-		log.SetPrefix("[SER] ")
-		log.Println(v...)
-	}
-}
-
-func LogW(v ...interface{}) {
-	if weblog {
-		log.SetPrefix("[WEB] ")
-		log.Println(v...)
-	}
-}
-
-func Log(v ...interface{}) {
-	log.SetPrefix("[MCP] ")
-	log.Println(v...)
-}
-
-func LogE(v ...interface{}) {
-	log.SetPrefix("[MCP] ")
-	log.Fatalln(v...)
 }
