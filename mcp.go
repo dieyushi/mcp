@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
 	"flag"
 	"github.com/monnand/goredis"
 	"io"
@@ -112,12 +113,20 @@ func main() {
 }
 
 func sendQuit() {
+	hosturl := host
 	if host == "" {
-		if resp, err := http.Get("http://127.0.0.1:" + webport + "/bye/"); err == nil {
+		hosturl = "127.0.0.1"
+	}
+	if !usessl {
+		if resp, err := http.Get("http://" + hosturl + ":" + webport + "/bye/"); err == nil {
 			resp.Body.Close()
 		}
 	} else {
-		if resp, err := http.Get("http://" + host + ":" + webport + "/bye/"); err == nil {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client := &http.Client{Transport: tr}
+		if resp, err := client.Get("https://" + hosturl + ":" + webport + "/bye/"); err == nil {
 			resp.Body.Close()
 		}
 	}
