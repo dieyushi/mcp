@@ -25,3 +25,4 @@ _testmain.go
 mcp
 *.log
 *.pem
+generate_cert

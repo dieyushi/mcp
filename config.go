@@ -8,6 +8,7 @@ var (
 	host      string
 	webport   string
 	pcport    string
+	usessl    bool
 	redisaddr string
 	redisdb   int
 	redispwd  string
@@ -23,6 +24,7 @@ func handleConfig() {
 		host = ""
 		webport = "8080"
 		pcport = "44444"
+		usessl = true
 		redisaddr = ":6379"
 		redisdb = 0
 		redispwd = ""
@@ -43,6 +45,10 @@ func handleConfig() {
 	pcport, err = mcpConfig.GetString("default", "pcport")
 	if err != nil {
 		pcport = "44444"
+	}
+	usessl, err = mcpConfig.GetBool("default", "usessl")
+	if err != nil {
+		usessl = true
 	}
 	redisaddr, err = mcpConfig.GetString("redis", "redisaddr")
 	if err != nil {

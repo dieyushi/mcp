@@ -36,10 +36,21 @@ func webmain() {
 		mainChan <- true
 		return
 	}
-	defer ln.Close()
+	ln.Close()
 
 	closeFdChan <- true
-	http.Serve(ln, nil)
+
+	if usessl {
+		err := http.ListenAndServeTLS(host+":"+webport, "cert.pem", "key.pem", nil)
+		if err != nil {
+			LogE(err)
+		}
+	} else {
+		err := http.ListenAndServe(host+":"+webport, nil)
+		if err != nil {
+			LogE(err)
+		}
+	}
 }
 
 func loginHandler(rw http.ResponseWriter, req *http.Request) {
