@@ -72,7 +72,12 @@ func main() {
 			cmd.Process.Kill()
 		} else {
 			cmd.Process.Release()
-			Log("listening on port", webport, "and", pcport)
+			if webserver {
+				Log("listening on port", webport)
+			}
+			if pcserver {
+				Log("listening on port", pcport)
+			}
 			Log("Serving in the background")
 		}
 	} else {
@@ -96,19 +101,47 @@ func main() {
 			return
 		}
 
-		go webmain()
-		go servermain()
+		if webserver && pcserver {
+			go webmain()
+			go servermain()
 
-		<-closeFdChan
-		<-closeFdChan
+			<-closeFdChan
+			<-closeFdChan
 
-		if *closeFds {
-			os.Stdin.Close()
-			os.Stdout.Close()
-			os.Stderr.Close()
+			if *closeFds {
+				os.Stdin.Close()
+				os.Stdout.Close()
+				os.Stderr.Close()
+			}
+			<-mainChan
+			<-mainChan
 		}
-		<-mainChan
-		<-mainChan
+
+		if webserver {
+			go webmain()
+			<-closeFdChan
+
+			if *closeFds {
+				os.Stdin.Close()
+				os.Stdout.Close()
+				os.Stderr.Close()
+			}
+			<-mainChan
+		}
+
+		if pcserver {
+			go servermain()
+			<-closeFdChan
+
+			if *closeFds {
+				os.Stdin.Close()
+				os.Stdout.Close()
+				os.Stderr.Close()
+			}
+			<-mainChan
+		}
+
+		Log("none of the services need to start")
 	}
 }
 
